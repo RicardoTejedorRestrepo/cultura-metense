@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Completar Perfil - {{ PROJECT_NAME }}{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS (aquí ya no es necesario porque está en base.html) -->
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Progreso -->
+            <div class="card border-0 bg-light mb-4">
+                <div class="card-body text-center">
+                    <h4 class="text-primary mb-3">
+                        <i class="fas fa-user-edit me-2"></i>Completa tu Perfil Artístico
+                    </h4>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%;"></div>
+                    </div>
+                    <p class="text-muted mb-0">Último paso para unirte a nuestra comunidad artística</p>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>Información de tu Perfil
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="perfil-form">
+                        {% csrf_token %}
+
+                        <!-- Información General -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Información General
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.nombre_artistico|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.municipio|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mb-3">
+                                {{ form.descripcion|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.ubicacion|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.precio_por_hora|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Información de Contacto -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-address-book me-2"></i>Información de Contacto
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email_contacto|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.telefono|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mb-3">
+                                {{ form.pagina_web|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Multimedia -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-images me-2"></i>Multimedia y Documentos
+                                </h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.imagen_perfil|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Una buena foto de perfil ayuda a conectar con tu audiencia.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.logotipo|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Opcional. Si tienes un logo o marca personal.
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                {{ form.pdf|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Puedes subir tu CV, dossier o portafolio en PDF.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Especialidades -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-star me-2"></i>Tus Especialidades
+                                </h6>
+                                <p class="text-muted mb-3">
+                                    Selecciona las categorías y subcategorías que mejor representen tu talento:
+                                </p>
+                                {{ form.subcategorias|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Ubicación en Mapa -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación en el Mapa
+                                </h6>
+                                <p class="text-muted mb-3">
+                                    Ayuda a tus clientes a encontrarte. Haz clic en el mapa para establecer tu ubicación:
+                                </p>
+                                
+                                <div id="map" class="map-container mb-3 border rounded"></div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.latitud|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.longitud|as_crispy_field }}
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Importante:</strong> Haz clic en el mapa para establecer tu ubicación exacta. 
+                                    Esto ayudará a los clientes a encontrarte más fácilmente.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón de envío -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg py-3">
+                                <i class="fas fa-check-circle me-2"></i>Completar Mi Perfil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información de ayuda -->
+            <div class="card mt-4 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-question-circle me-2"></i>¿Por qué completar mi perfil?
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-search text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Mayor Visibilidad</strong>
+                                    <p class="small mb-0 text-muted">Los perfiles completos aparecen primero en las búsquedas</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-handshake text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Más Oportunidades</strong>
+                                    <p class="small mb-0 text-muted">Clientes confían más en artistas con perfiles completos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-chart-line text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Mejor Presentación</strong>
+                                    <p class="small mb-0 text-muted">Muestra tu trabajo de manera profesional</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Mapa Leaflet para SELECCIÓN de ubicación
+function initMap() {
+    const defaultLocation = [4.142, -73.6266];
+    const map = L.map('map').setView(defaultLocation, 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    let marker = L.marker(defaultLocation, {
+        draggable: true,
+        title: "Arrastra para ajustar tu ubicación"
+    }).addTo(map);
+    
+    marker.on('dragend', function() {
+        const position = marker.getLatLng();
+        document.getElementById("id_latitud").value = position.lat;
+        document.getElementById("id_longitud").value = position.lng;
+    });
+    
+    map.on('click', function(event) {
+        marker.setLatLng(event.latlng);
+        document.getElementById("id_latitud").value = event.latlng.lat;
+        document.getElementById("id_longitud").value = event.latlng.lng;
+    });
+    
+    const latInput = document.getElementById("id_latitud");
+    const lngInput = document.getElementById("id_longitud");
+    
+    if (latInput.value && lngInput.value) {
+        const savedLocation = [parseFloat(latInput.value), parseFloat(lngInput.value)];
+        marker.setLatLng(savedLocation);
+        map.setView(savedLocation, 15);
+    }
+    
+    // Ajustar tamaño del mapa
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+});
+
+// Validación del formulario
+document.getElementById('perfil-form').addEventListener('submit', function(e) {
+    const lat = document.getElementById('id_latitud').value;
+    const lng = document.getElementById('id_longitud').value;
+    
+    if (!lat || !lng) {
+        e.preventDefault();
+        alert('Por favor, selecciona tu ubicación en el mapa haciendo clic en él.');
+        return false;
+    }
+});
+</script>
+
+<style>
+.map-container {
+    height: 400px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Resto de estilos */
+.form-check { margin-bottom: 0.5rem; padding-left: 2.5em; }
+.form-check-input { margin-left: -2.5em; margin-top: 0.25em; }
+.form-check-label { cursor: pointer; }
+</style>
+{% endblock %}

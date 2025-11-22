@@ -1,0 +1,195 @@
+/* Estilos personalizados para Cultura Metense */
+
+:root {
+    --primary-color: #3498db;
+    --primary-dark: #2980b9;
+    --secondary-color: #2c3e50;
+    --success-color: #198754;
+    --border-radius: 10px;
+    --transition: all 0.3s ease;
+}
+
+/* Mejorar accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mejoras para formularios */
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Tarjetas con hover suave */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Botones personalizados */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2980b9, #2573a7);
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+}
+
+/* Barras de progreso */
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+/* Iconos animados */
+.fas, .fab {
+    transition: transform 0.3s ease;
+}
+
+.card:hover .fas,
+.card:hover .fab {
+    transform: scale(1.1);
+}
+
+/* Mapas */
+.map-container {
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+}
+
+.map-container:hover {
+    border-color: #3498db;
+}
+
+/* Alertas mejoradas */
+.alert {
+    border: none;
+    border-radius: 10px;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+}
+
+/* Badges personalizados */
+.badge {
+    font-weight: 500;
+}
+
+/* Loading states */
+.btn-loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-loading:after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-right-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Password strength indicator */
+.password-strength {
+    margin-top: 0.5rem;
+}
+
+.strength-weak { color: #dc3545; }
+.strength-fair { color: #fd7e14; }
+.strength-good { color: #ffc107; }
+.strength-strong { color: #20c997; }
+.strength-very-strong { color: #198754; }
+
+/* Mejoras para los checkboxes de subcategorías */
+.form-check {
+    margin-bottom: 0.5rem;
+    padding-left: 2.5em;
+}
+
+.form-check-input {
+    margin-left: -2.5em;
+    margin-top: 0.25em;
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
+/* Estilos para campos de archivo */
+.custom-file-label::after {
+    content: "Examinar";
+}
+
+/* Mejoras visuales para tarjetas de artista */
+.artist-card .card-img-top {
+    transition: transform 0.3s ease;
+}
+
+.artist-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* Gradientes y sombras para mejor estética */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.card {
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+/* Efectos de hover para enlaces */
+.nav-link {
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #3498db !important;
+}

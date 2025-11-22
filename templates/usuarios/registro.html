@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registro - {{ PROJECT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Únete a {{ PROJECT_NAME }}
+                    </h3>
+                    <p class="mb-0 mt-2 opacity-75">Comienza tu viaje como artista en nuestra plataforma</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.username|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password1|as_crispy_field }}
+                            <div class="form-text">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula y un número.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.password2|as_crispy_field }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-check me-2"></i>Crear Cuenta
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-2">¿Ya tienes una cuenta?</p>
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pasos del registro -->
+            <div class="card mt-4 border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="text-primary text-center mb-4">
+                        <i class="fas fa-road me-2"></i>Tu camino hacia el éxito artístico
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <strong>1</strong>
+                            </div>
+                            <h6 class="text-primary">Registro</h6>
+                            <p class="small text-muted mb-0">Crea tu cuenta básica</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <strong>2</strong>
+                            </div>
+                            <h6 class="text-primary">Perfil</h6>
+                            <p class="small text-muted mb-0">Completa tu información artística</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <strong>3</strong>
+                            </div>
+                            <h6 class="text-primary">Descubre</h6>
+                            <p class="small text-muted mb-0">Sé encontrado por clientes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación en tiempo real de fortaleza de contraseña
+    const password1 = document.getElementById('id_password1');
+    const password2 = document.getElementById('id_password2');
+    
+    if (password1) {
+        password1.addEventListener('input', function() {
+            const password = this.value;
+            const strength = checkPasswordStrength(password);
+            updatePasswordStrength(strength);
+        });
+    }
+    
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/)) strength++;
+        if (password.match(/[A-Z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^a-zA-Z0-9]/)) strength++;
+        
+        return strength;
+    }
+    
+    function updatePasswordStrength(strength) {
+        const strengthBar = document.getElementById('password-strength-bar');
+        if (!strengthBar) return;
+        
+        const strengthText = ['Muy débil', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'];
+        const strengthColors = ['danger', 'warning', 'info', 'success', 'success'];
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.className = `progress-bar bg-${strengthColors[strength - 1] || 'danger'}`;
+        strengthBar.textContent = strengthText[strength - 1] || 'Muy débil';
+    }
+});
+</script>
+{% endblock %}

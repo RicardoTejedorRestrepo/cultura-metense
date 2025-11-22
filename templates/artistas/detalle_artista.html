@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ artista.nombre_artistico }} - {{ PROJECT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header del Artista -->
+    <div class="row mb-5">
+        <div class="col-lg-4 text-center mb-4 mb-lg-0">
+            {% if artista.imagen_perfil %}
+                <img src="{{ artista.imagen_perfil.url }}" class="img-fluid rounded-circle shadow" style="width: 250px; height: 250px; object-fit: cover;" alt="{{ artista.nombre_artistico }}">
+            {% else %}
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto shadow" style="width: 250px; height: 250px;">
+                    <i class="fas fa-user fa-5x text-white"></i>
+                </div>
+            {% endif %}
+            
+            {% if user == artista.usuario %}
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editarPerfilModal">
+                        <i class="fas fa-edit me-1"></i>Editar Perfil
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-8">
+            <h1 class="display-4 fw-bold text-primary mb-2">{{ artista.nombre_artistico }}</h1>
+            <p class="lead text-muted mb-3">
+                <i class="fas fa-map-marker-alt me-2"></i>{{ artista.municipio }}, {{ artista.ubicacion }}
+            </p>
+            
+            <div class="mb-4">
+                {% for subcategoria in artista.subcategorias.all %}
+                    <span class="badge bg-light text-dark me-2 mb-2 fs-6">
+                        <i class="fas fa-check-circle text-primary me-1"></i>{{ subcategoria.nombre }}
+                    </span>
+                {% endfor %}
+            </div>
+            
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-user-edit me-2"></i>Descripción
+                    </h5>
+                    <p class="mb-0" style="font-size: 1.1rem; line-height: 1.8;">
+                        {{ artista.descripcion|linebreaks }}
+                    </p>
+                </div>
+            </div>
+            
+            {% if artista.precio_por_hora %}
+                <div class="mt-4 p-3 bg-success bg-opacity-10 rounded">
+                    <h5 class="text-success mb-0">
+                        <i class="fas fa-tag me-2"></i>Tarifa: ${{ artista.precio_por_hora|floatformat:2 }}/hora
+                    </h5>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información de Contacto -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-address-book me-2"></i>Información de Contacto</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-2"><i class="fas fa-envelope text-primary me-2"></i>{{ artista.email_contacto }}</p>
+                            <p class="mb-2"><i class="fas fa-phone text-primary me-2"></i>{{ artista.telefono }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if artista.pagina_web %}
+                                <p class="mb-2">
+                                    <i class="fas fa-globe text-primary me-2"></i>
+                                    <a href="{{ artista.pagina_web }}" target="_blank">{{ artista.pagina_web }}</a>
+                                </p>
+                            {% endif %}
+                            {% if artista.pdf %}
+                                <p class="mb-0">
+                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                    <a href="{{ artista.pdf.url }}" target="_blank">Ver PDF/Portafolio</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ubicación en Mapa (SOLO SI HAY COORDENADAS) -->
+    {% if artista.latitud and artista.longitud %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Ubicación</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map-detalle" class="map-container" style="height: 400px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Redes Sociales -->
+    {% if artista.redes_sociales.exists %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-share-alt me-2"></i>Redes Sociales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for red in artista.redes_sociales.all %}
+                            <div class="col-md-3 col-6 mb-3 text-center">
+                                <a href="{{ red.url }}" target="_blank" class="btn btn-outline-primary w-100">
+                                    <i class="fab fa-{{ red.nombre }} fa-2x mb-2"></i><br>
+                                    <small>{{ red.get_nombre_display|title }}</small>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Portafolio de Imágenes -->
+    {% if artista.imagenes_portafolio.exists %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>Portafolio</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for imagen in artista.imagenes_portafolio.all %}
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    {% if imagen.imagen %}
+                                        <img src="{{ imagen.imagen.url }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ imagen.descripcion }}">
+                                    {% endif %}
+                                    {% if imagen.descripcion %}
+                                        <div class="card-body">
+                                            <p class="card-text small">{{ imagen.descripcion }}</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Artistas Similares -->
+    {% if similares %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-primary mb-4">
+                <i class="fas fa-users me-2"></i>Artistas Similares
+            </h3>
+            <div class="row">
+                {% for similar in similares %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card artist-card h-100">
+                            {% if similar.imagen_perfil %}
+                                <img src="{{ similar.imagen_perfil.url }}" class="card-img-top" alt="{{ similar.nombre_artistico }}">
+                            {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 200px;">
+                                    <i class="fas fa-user fa-4x"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ similar.nombre_artistico }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ similar.municipio }}
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'artistas:detalle_artista' similar.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                    Ver Perfil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formularios para el propietario del perfil -->
+    {% if user == artista.usuario %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Agregar Red Social</h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ red_social_form.nombre|as_crispy_field }}
+                            </div>
+                            <div class="mb-3">
+                                {{ red_social_form.url|as_crispy_field }}
+                            </div>
+                            <button type="submit" name="agregar_red_social" class="btn btn-info w-100">
+                                <i class="fas fa-plus me-2"></i>Agregar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-image me-2"></i>Agregar Imagen al Portafolio</h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ imagen_form.imagen|as_crispy_field }}
+                            </div>
+                            <div class="mb-3">
+                                {{ imagen_form.descripcion|as_crispy_field }}
+                            </div>
+                            <button type="submit" name="agregar_imagen" class="btn btn-success w-100">
+                                <i class="fas fa-upload me-2"></i>Subir Imagen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- MODAL DE EDICIÓN DE PERFIL -->
+{% if user == artista.usuario %}
+<div class="modal fade" id="editarPerfilModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Perfil Artístico</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'artistas:editar_perfil' artista.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre Artístico</label>
+                            <input type="text" name="nombre_artistico" class="form-control" value="{{ artista.nombre_artistico }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Municipio</label>
+                            <input type="text" name="municipio" class="form-control" value="{{ artista.municipio }}" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="4" required>{{ artista.descripcion }}</textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ubicación</label>
+                            <input type="text" name="ubicacion" class="form-control" value="{{ artista.ubicacion }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Precio por Hora</label>
+                            <input type="number" name="precio_por_hora" class="form-control" value="{{ artista.precio_por_hora|default_if_none:'' }}" step="0.01">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email de Contacto</label>
+                            <input type="email" name="email_contacto" class="form-control" value="{{ artista.email_contacto }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control" value="{{ artista.telefono }}" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Página Web (opcional)</label>
+                            <input type="url" name="pagina_web" class="form-control" value="{{ artista.pagina_web|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Imagen de Perfil</label>
+                            <input type="file" name="imagen_perfil" class="form-control" accept="image/*">
+                            {% if artista.imagen_perfil %}
+                                <small class="text-muted">Actual: <a href="{{ artista.imagen_perfil.url }}" target="_blank">Ver imagen</a></small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Logotipo</label>
+                            <input type="file" name="logotipo" class="form-control" accept="image/*">
+                            {% if artista.logotipo %}
+                                <small class="text-muted">Actual: <a href="{{ artista.logotipo.url }}" target="_blank">Ver logotipo</a></small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">PDF/Portafolio</label>
+                            <input type="file" name="pdf" class="form-control" accept="application/pdf">
+                            {% if artista.pdf %}
+                                <small class="text-muted">Actual: <a href="{{ artista.pdf.url }}" target="_blank">Ver PDF</a></small>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Subcategorías</label>
+                            <select name="subcategorias" class="form-select" multiple>
+                                {% for subcat in subcategorias %}
+                                    <option value="{{ subcat.id }}" {% if subcat in artista.subcategorias.all %}selected{% endif %}>
+                                        {{ subcat.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Mantén Ctrl/Cmd para seleccionar varias</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if artista.latitud and artista.longitud %}
+<!-- Cargar Leaflet SOLO UNA VEZ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// FUNCIÓN PARA CORREGIR COORDENADAS
+function parseCoord(coord) {
+    if (typeof coord === 'string') {
+        return parseFloat(coord.replace(',', '.'));
+    }
+    return coord;
+}
+
+function crearMapa() {
+    console.log('🔄 INTENTANDO CREAR MAPA...');
+    
+    const mapContainer = document.getElementById('map-detalle');
+    if (!mapContainer) {
+        console.error('❌ ERROR: No existe el contenedor map-detalle');
+        return false;
+    }
+
+    // CORREGIR COORDENADAS - convertir comas a puntos
+    const lat = parseCoord({{ artista.latitud|stringformat:'f' }});
+    const lng = parseCoord({{ artista.longitud|stringformat:'f' }});
+    
+    console.log('📍 Coordenadas originales:', '{{ artista.latitud }}', '{{ artista.longitud }}');
+    console.log('📍 Coordenadas corregidas:', lat, lng);
+
+    // Verificar que sean números válidos
+    if (isNaN(lat) || isNaN(lng)) {
+        console.error('❌ ERROR: Coordenadas no son números válidos');
+        mapContainer.innerHTML = `
+            <div class="alert alert-danger text-center p-4">
+                <h5><i class="fas fa-exclamation-triangle"></i> Error en coordenadas</h5>
+                <p>Coordenadas inválidas: {{ artista.latitud }}, {{ artista.longitud }}</p>
+                <p>Por favor, actualiza la ubicación en tu perfil.</p>
+            </div>
+        `;
+        return false;
+    }
+
+    try {
+        // LIMPIAR el contenedor completamente
+        mapContainer.innerHTML = '';
+        
+        // CREAR MAPA
+        const map = L.map('map-detalle').setView([lat, lng], 15);
+
+        // CAPA de tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // MARCADOR
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup('<b>{{ artista.nombre_artistico|escapejs }}</b><br>{{ artista.municipio|escapejs }}')
+            .openPopup();
+
+        console.log('✅ MAPA CREADO EXITOSAMENTE');
+        
+        // Redimensionar
+        setTimeout(() => {
+            map.invalidateSize();
+            console.log('🔄 Mapa redimensionado');
+        }, 300);
+        
+        return true;
+        
+    } catch (error) {
+        console.error('💥 ERROR CRÍTICO:', error);
+        mapContainer.innerHTML = `
+            <div class="alert alert-danger text-center p-4">
+                <h5><i class="fas fa-exclamation-triangle"></i> Error del Mapa</h5>
+                <p>${error.message}</p>
+            </div>
+        `;
+        return false;
+    }
+}
+
+// INICIAR MAPA
+function inicializarMapa() {
+    console.log('🎯 INICIANDO CARGA DEL MAPA...');
+    
+    if (crearMapa()) {
+        console.log('🎉 MAPA CARGADO CON ÉXITO');
+    } else {
+        console.error('❌ FALLO AL CARGAR MAPA');
+    }
+}
+
+// INICIAR cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', inicializarMapa);
+</script>
+
+<style>
+#map-detalle {
+    height: 400px !important;
+    width: 100% !important;
+    background: #f8f9fa !important;
+}
+
+.leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+    background: #f8f9fa !important;
+}
+</style>
+
+{% else %}
+<script>
+// Si no hay coordenadas
+document.addEventListener('DOMContentLoaded', function() {
+    const mapContainer = document.getElementById('map-detalle');
+    if (mapContainer) {
+        mapContainer.innerHTML = `
+            <div class="alert alert-info text-center p-4">
+                <i class="fas fa-map-marker-alt fa-2x mb-3"></i>
+                <h5>Ubicación no disponible</h5>
+                <p class="mb-0">El artista no ha proporcionado coordenadas para el mapa.</p>
+            </div>
+        `;
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
