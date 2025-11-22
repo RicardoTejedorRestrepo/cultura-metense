@@ -1,60 +1,25 @@
-# .gitignore para Django proyecto Cultura Metense
+# Django
+*.pyc
+*~
+__pycache__
+db.sqlite3
+media/
+staticfiles/
 
-# Entornos virtuales
+# Environments
 .env
 .venv
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Archivos de medios (subidos por usuarios)
-/media/
-!/media/.gitkeep
-
-# Archivos estáticos recolectados
-/staticfiles/
-!/staticfiles/.gitkeep
-
-# IDE/Editores
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# Sistema operativo
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -63,28 +28,9 @@ db.sqlite3-journal
 ehthumbs.db
 Thumbs.db
 
-# Archivos de entorno
-.env.local
-.env.production
-.env.development
-
-# Archivos de backup
-*.bak
-*.backup
-
-# Archivos temporales
-*.tmp
-*.temp
-
 # Logs
-logs/
 *.log
+debug.log
 
-# Archivos de cobertura
-htmlcov/
-.coverage
-.coverage.*
-cover/
-*.cover
-.hypothesis/
-.pytest_cache/
+# Database
+*.db

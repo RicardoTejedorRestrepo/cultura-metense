@@ -5,8 +5,8 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='clave-secreta-temporal')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = 'django-insecure-o+y%2&b@!w-8%m0%7=+zib47zy0d-o1am%xf%+y^i#g2j!c0yd'
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'desarrolladortechnology.pythonanywhere.com',
@@ -48,9 +48,9 @@ MIDDLEWARE = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'desarrolladortechnology$cultura_metense',
+        'NAME': 'desarrolladortec$default', 
         'USER': 'desarrolladortec',
-        'PASSWORD': config('DB_PASSWORD', default=''),
+        'PASSWORD': 'TRra2025*',
         'HOST': 'desarrolladortechnology.mysql.pythonanywhere-services.com',
         'PORT': '3306',
         'OPTIONS': {
@@ -77,3 +77,10 @@ LOGIN_URL = 'usuarios:login'
 LOGOUT_REDIRECT_URL = 'artistas:home'
 
 PROJECT_NAME = 'Cultura Metense'
+
+# Configuración para PythonAnywhere
+if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+    DEBUG = False
+    # Configuración segura de static files
+    STATIC_ROOT = '/home/desarrolladortechnology/cultura-metense/staticfiles'
+    MEDIA_ROOT = '/home/desarrolladortechnology/cultura-metense/media'
