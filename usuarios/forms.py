@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, RegexValidator
 from artistas.models import Artista, Subcategoria
 
+
 class RegistroForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
@@ -73,13 +74,15 @@ class RegistroForm(UserCreationForm):
             'class': 'form-control password-input'
         })
 
+
 class CompletarPerfilForm(forms.ModelForm):
     class Meta:
         model = Artista
         fields = [
             'nombre_artistico', 'descripcion', 'precio_por_hora', 
             'municipio', 'ubicacion', 'email_contacto', 'telefono',
-            'pagina_web', 'logotipo', 'imagen_perfil', 'pdf', 'subcategorias'
+            'pagina_web', 'logotipo', 'imagen_perfil', 'pdf', 'subcategorias',
+            'latitud', 'longitud'
         ]
         widgets = {
             'descripcion': forms.Textarea(attrs={
@@ -87,15 +90,13 @@ class CompletarPerfilForm(forms.ModelForm):
                 'rows': 4, 
                 'placeholder': 'Describe tu trayectoria...'
             }),
-            'subcategorias': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-control', 
                 'placeholder': '+57 300 000 0000'
             }),
+            'latitud': forms.HiddenInput(),
+            'longitud': forms.HiddenInput(),
         }
-    
-    latitud = forms.FloatField(required=False, widget=forms.HiddenInput())
-    longitud = forms.FloatField(required=False, widget=forms.HiddenInput())
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

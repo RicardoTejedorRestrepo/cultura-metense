@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Buscar Artistas - {{ PROJECT_NAME }}{% endblock %}
+{% block title %}Descubre los Artistas - {{ PROJECT_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid bg-light py-4">
@@ -9,8 +9,8 @@
         <!-- Hero Section -->
         <div class="row align-items-center mb-5">
             <div class="col-lg-8">
-                <h1 class="display-5 fw-bold text-primary">Encuentra Artistas en el Meta</h1>
-                <p class="lead">Descubre talento local en danza, música, teatro, artes plásticas y más.</p>
+                <h1 class="display-5 fw-bold text-primary">Descubre los artistas del Meta</h1>
+                <p class="lead">Explora talento local en danza, música, teatro, artes plásticas y más.</p>
             </div>
             <div class="col-lg-4 text-lg-end">
                 {% if not user.is_authenticated %}
@@ -30,7 +30,18 @@
                     </div>
                     <div class="card-body">
                         <form method="get" id="search-form">
-                            {{ form|crispy }}
+                            <div class="mb-3">
+                                {{ form.ubicacion|as_crispy_field }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.categoria|as_crispy_field }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.subcategoria|as_crispy_field }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.nombre|as_crispy_field }}
+                            </div>
                             <button type="submit" class="btn btn-primary w-100 mt-3">
                                 <i class="fas fa-search me-2"></i>Buscar Artistas
                             </button>
@@ -144,17 +155,118 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Actualizar subcategorías cuando cambia la categoría
     const categoriaSelect = document.querySelector('#id_categoria');
     const subcategoriaSelect = document.querySelector('#id_subcategoria');
     
-    if (categoriaSelect && subcategoriaSelect) {
-        categoriaSelect.addEventListener('change', function() {
-            const categoriaId = this.value;
-            // En una implementación real, harías una petición AJAX para cargar las subcategorías
-            // Por ahora, simplemente permitimos cualquier selección
-        });
+    console.log('Categoría select encontrado:', !!categoriaSelect);
+    console.log('Subcategoría select encontrado:', !!subcategoriaSelect);
+    
+    // Función para cargar subcategorías
+    function cargarSubcategorias(categoriaId, subcategoriaSeleccionada = null) {
+        console.log('Cargando subcategorías para categoría ID:', categoriaId);
+        
+        if (!categoriaId) {
+            // Si no hay categoría seleccionada, deshabilitar subcategorías
+            subcategoriaSelect.disabled = true;
+            subcategoriaSelect.innerHTML = '<option value="">Selecciona una categoría primero</option>';
+            return;
+        }
+        
+        // ✅ CORREGIDO: URL correcta sin 'artistas/'
+        const url = `/subcategorias/${categoriaId}/`;
+        console.log('URL de subcategorías:', url);
+        
+        // Realizar petición AJAX
+        fetch(url)
+            .then(response => {
+                console.log('Respuesta recibida, status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data);
+                
+                // Habilitar el select
+                subcategoriaSelect.disabled = false;
+                
+                // Guardar la opción seleccionada actual (si existe)
+                const seleccionActual = subcategoriaSelect.value;
+                
+                // Limpiar opciones existentes
+                subcategoriaSelect.innerHTML = '';
+                
+                // Agregar opción por defecto
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Todas las subcategorías';
+                subcategoriaSelect.appendChild(defaultOption);
+                
+                // Agregar cada subcategoría como opción
+                data.forEach(subcat => {
+                    const option = document.createElement('option');
+                    option.value = subcat.id;
+                    option.textContent = subcat.nombre;
+                    
+                    // Si esta subcategoría estaba seleccionada antes, o si se pasa como parámetro
+                    if (subcategoriaSeleccionada == subcat.id || seleccionActual == subcat.id) {
+                        option.selected = true;
+                    }
+                    
+                    subcategoriaSelect.appendChild(option);
+                });
+                
+                // Si no hay subcategorías
+                if (data.length === 0) {
+                    const noOption = document.createElement('option');
+                    noOption.value = '';
+                    noOption.textContent = 'No hay subcategorías para esta categoría';
+                    noOption.disabled = true;
+                    subcategoriaSelect.appendChild(noOption);
+                }
+            })
+            .catch(error => {
+                console.error('Error cargando subcategorías:', error);
+                
+                // En caso de error, mostrar mensaje
+                subcategoriaSelect.disabled = true;
+                subcategoriaSelect.innerHTML = '<option value="">Error cargando subcategorías</option>';
+            });
     }
+    
+    // Estado inicial - cargar subcategorías si ya hay una categoría seleccionada
+    const categoriaInicial = categoriaSelect.value;
+    const subcategoriaInicial = subcategoriaSelect.value;
+    
+    console.log('Categoría inicial:', categoriaInicial);
+    console.log('Subcategoría inicial:', subcategoriaInicial);
+    
+    if (categoriaInicial) {
+        // Hay una categoría seleccionada inicialmente
+        cargarSubcategorias(categoriaInicial, subcategoriaInicial);
+    } else {
+        // No hay categoría seleccionada, deshabilitar subcategorías
+        subcategoriaSelect.disabled = true;
+        subcategoriaSelect.innerHTML = '<option value="">Selecciona una categoría primero</option>';
+    }
+    
+    // Event listener para cambios en la categoría
+    categoriaSelect.addEventListener('change', function() {
+        console.log('Categoría cambiada a:', this.value);
+        
+        // Limpiar subcategoría anterior
+        subcategoriaSelect.innerHTML = '';
+        
+        if (this.value) {
+            // Cargar subcategorías de la nueva categoría
+            cargarSubcategorias(this.value);
+        } else {
+            // Si no se selecciona categoría, deshabilitar subcategorías
+            subcategoriaSelect.disabled = true;
+            subcategoriaSelect.innerHTML = '<option value="">Selecciona una categoría primero</option>';
+        }
+    });
 });
 </script>
 {% endblock %}

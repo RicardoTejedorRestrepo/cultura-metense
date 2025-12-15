@@ -1,18 +1,40 @@
-from django import forms
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.conf import settings
+from django import forms
+from django.http import JsonResponse
 from .models import Artista, Categoria, Subcategoria, RedSocial, ImagenPortafolio
 from .forms import BusquedaForm, RedSocialForm, ImagenPortafolioForm
 from django.contrib.auth.decorators import login_required
 from django.forms import modelform_factory
 
+
+def obtener_subcategorias(request, categoria_id):
+    """Vista para obtener subcategorías de una categoría específica en formato JSON"""
+    try:
+        # Obtener la categoría
+        categoria = get_object_or_404(Categoria, id=categoria_id)
+        
+        # Obtener todas las subcategorías de esta categoría
+        subcategorias = Subcategoria.objects.filter(categoria=categoria).values('id', 'nombre')
+        
+        # Convertir a lista y devolver JSON
+        data = list(subcategorias)
+        return JsonResponse(data, safe=False)
+        
+    except Categoria.DoesNotExist:
+        return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
 def home(request):
     form = BusquedaForm(request.GET or None)
     artistas = Artista.objects.filter(activo=True).select_related('usuario').prefetch_related('subcategorias')
     
+    # Si el formulario es válido, aplicar filtros
     if form.is_valid():
         ubicacion = form.cleaned_data.get('ubicacion')
         categoria = form.cleaned_data.get('categoria')
@@ -43,13 +65,20 @@ def home(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Obtener categoría y subcategoría seleccionadas para pre-seleccionar en el template
+    categoria_seleccionada = request.GET.get('categoria')
+    subcategoria_seleccionada = request.GET.get('subcategoria')
+    
     context = {
         'form': form,
         'page_obj': page_obj,
         'artistas': page_obj,
-        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Cultura Metense')
+        'categoria_seleccionada': categoria_seleccionada,
+        'subcategoria_seleccionada': subcategoria_seleccionada,
+        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Portafolio Cultural del Departamento del Meta')
     }
     return render(request, 'artistas/home.html', context)
+
 
 def detalle_artista(request, artista_id):
     artista = get_object_or_404(
@@ -69,12 +98,10 @@ def detalle_artista(request, artista_id):
     # Forms para redes sociales e imágenes (si es el dueño del perfil)
     red_social_form = None
     imagen_form = None
-    subcategorias = None  # AGREGAR ESTO
     
     if request.user == artista.usuario:
         red_social_form = RedSocialForm()
         imagen_form = ImagenPortafolioForm()
-        subcategorias = Subcategoria.objects.all()  # AGREGAR ESTO
         
         if request.method == 'POST':
             if 'agregar_red_social' in request.POST:
@@ -100,15 +127,18 @@ def detalle_artista(request, artista_id):
         'similares': similares,
         'red_social_form': red_social_form,
         'imagen_form': imagen_form,
-        'subcategorias': Subcategoria.objects.all(),
-        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Cultura Metense')
+        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Portafolio Cultural del Departamento del Meta')
     }
     return render(request, 'artistas/detalle_artista.html', context)
 
-# Líneas finales del archivo (agrega esta función completa)
+
 @login_required
 def editar_perfil(request, artista_id):
     artista = get_object_or_404(Artista, id=artista_id, usuario=request.user)
+    
+    # Obtener todas las categorías con sus subcategorías
+    categorias = Categoria.objects.prefetch_related('subcategorias').all()
+    subcategorias_seleccionadas = artista.subcategorias.values_list('id', flat=True)
     
     # Formulario dinámico para el modelo Artista
     ArtistaForm = modelform_factory(
@@ -116,11 +146,14 @@ def editar_perfil(request, artista_id):
         fields=[
             'nombre_artistico', 'descripcion', 'precio_por_hora', 
             'municipio', 'ubicacion', 'email_contacto', 'telefono',
-            'pagina_web', 'imagen_perfil', 'logotipo', 'pdf', 'subcategorias'
+            'pagina_web', 'imagen_perfil', 'logotipo', 'pdf', 'subcategorias',
+            'latitud', 'longitud'
         ],
         widgets={
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'subcategorias': forms.SelectMultiple(attrs={'class': 'form-select'}),
+            'latitud': forms.HiddenInput(),
+            'longitud': forms.HiddenInput(),
         }
     )
     
@@ -135,7 +168,11 @@ def editar_perfil(request, artista_id):
     else:
         form = ArtistaForm(instance=artista)
     
-    return render(request, 'artistas/editar_perfil.html', {
+    context = {
         'form': form,
-        'artista': artista
-    })
+        'artista': artista,
+        'categorias': categorias,
+        'subcategorias_seleccionadas': subcategorias_seleccionadas,
+        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Portafolio Cultural del Departamento del Meta')
+    }
+    return render(request, 'artistas/editar_perfil.html', context)

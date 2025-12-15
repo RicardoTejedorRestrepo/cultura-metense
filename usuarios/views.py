@@ -4,8 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from .forms import RegistroForm, CompletarPerfilForm
-from artistas.models import Artista
+from artistas.models import Artista, Categoria
 from django.db import transaction
+
 
 def registro(request):
     if request.method == 'POST':
@@ -20,9 +21,10 @@ def registro(request):
     
     context = {
         'form': form,
-        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Cultura Metense')
+        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Portafolio Cultural del Departamento del Meta')
     }
     return render(request, 'usuarios/registro.html', context)
+
 
 @login_required
 def completar_perfil(request):
@@ -30,6 +32,9 @@ def completar_perfil(request):
     if hasattr(request.user, 'artista'):
         messages.info(request, 'Ya tienes un perfil de artista completado.')
         return redirect('artistas:detalle_artista', artista_id=request.user.artista.id)
+    
+    # Obtener todas las categorías con sus subcategorías
+    categorias = Categoria.objects.prefetch_related('subcategorias').all()
     
     if request.method == 'POST':
         form = CompletarPerfilForm(request.POST, request.FILES)
@@ -53,7 +58,9 @@ def completar_perfil(request):
     
     context = {
         'form': form,
+        'categorias': categorias,
+        'subcategorias_seleccionadas': [],
         'GOOGLE_MAPS_API_KEY': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
-        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Cultura Metense')
+        'PROJECT_NAME': getattr(settings, 'PROJECT_NAME', 'Portafolio Cultural del Departamento del Meta')
     }
     return render(request, 'usuarios/completar_perfil.html', context)

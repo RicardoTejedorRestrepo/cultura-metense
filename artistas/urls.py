@@ -7,4 +7,5 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('artista/<int:artista_id>/', views.detalle_artista, name='detalle_artista'),
     path('artista/<int:artista_id>/editar/', views.editar_perfil, name='editar_perfil'),
+    path('subcategorias/<int:categoria_id>/', views.obtener_subcategorias, name='obtener_subcategorias'),
 ]

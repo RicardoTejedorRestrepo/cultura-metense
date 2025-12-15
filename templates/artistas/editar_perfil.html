@@ -1,8 +1,22 @@
-<!-- templates/artistas/editar_perfil.html -->
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
 {% block title %}Editar Perfil - {{ PROJECT_NAME }}{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -15,9 +29,129 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="editar-perfil-form">
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        
+                        <!-- Información General -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                {{ form.nombre_artistico|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.municipio|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mb-3">
+                                {{ form.descripcion|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.ubicacion|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.precio_por_hora|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Información de Contacto -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                {{ form.email_contacto|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.telefono|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mb-3">
+                                {{ form.pagina_web|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Multimedia -->
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                {{ form.imagen_perfil|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.logotipo|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.pdf|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Especialidades -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-star me-2"></i>Especialidades
+                                </h6>
+                                
+                                <!-- Categorías como pestañas -->
+                                <ul class="nav nav-tabs mb-3" id="categoriasTab" role="tablist">
+                                    {% for categoria in categorias %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                                                id="cat-{{ categoria.id }}-tab" 
+                                                data-bs-toggle="tab" 
+                                                data-bs-target="#cat-{{ categoria.id }}" 
+                                                type="button" 
+                                                role="tab">
+                                            <i class="{{ categoria.icono }} me-1"></i>{{ categoria.nombre }}
+                                        </button>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                
+                                <!-- Contenido de las pestañas -->
+                                <div class="tab-content" id="categoriasTabContent">
+                                    {% for categoria in categorias %}
+                                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                                         id="cat-{{ categoria.id }}" 
+                                         role="tabpanel">
+                                        <div class="row">
+                                            {% for subcategoria in categoria.subcategorias.all %}
+                                            <div class="col-md-4 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input subcategoria-checkbox" 
+                                                           type="checkbox" 
+                                                           name="subcategorias" 
+                                                           value="{{ subcategoria.id }}" 
+                                                           id="subcat-{{ subcategoria.id }}"
+                                                           {% if subcategoria.id in subcategorias_seleccionadas %}checked{% endif %}>
+                                                    <label class="form-check-label" for="subcat-{{ subcategoria.id }}">
+                                                        {{ subcategoria.nombre }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            {% empty %}
+                                            <div class="col-12">
+                                                <p class="text-muted">No hay subcategorías disponibles para esta categoría.</p>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ubicación en Mapa -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación en el Mapa
+                                </h6>
+                                
+                                <div id="map" class="map-container mb-3 border rounded"></div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.latitud|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.longitud|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -33,4 +167,67 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Mapa Leaflet
+function initMap() {
+    const latInput = document.getElementById("id_latitud");
+    const lngInput = document.getElementById("id_longitud");
+    
+    // Coordenadas por defecto o las actuales
+    let defaultLat = 4.142;
+    let defaultLng = -73.6266;
+    
+    if (latInput.value && lngInput.value) {
+        defaultLat = parseFloat(latInput.value);
+        defaultLng = parseFloat(lngInput.value);
+    }
+    
+    const map = L.map('map').setView([defaultLat, defaultLng], 15);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    let marker = L.marker([defaultLat, defaultLng], {
+        draggable: true,
+        title: "Arrastra para ajustar tu ubicación"
+    }).addTo(map);
+    
+    marker.on('dragend', function() {
+        const position = marker.getLatLng();
+        latInput.value = position.lat;
+        lngInput.value = position.lng;
+    });
+    
+    map.on('click', function(event) {
+        marker.setLatLng(event.latlng);
+        latInput.value = event.latlng.lat;
+        lngInput.value = event.latlng.lng;
+    });
+    
+    // Ajustar tamaño del mapa
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+});
+</script>
+
+<style>
+.map-container {
+    height: 400px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+</style>
 {% endblock %}

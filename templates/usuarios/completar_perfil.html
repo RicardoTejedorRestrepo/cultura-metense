@@ -4,7 +4,23 @@
 {% block title %}Completar Perfil - {{ PROJECT_NAME }}{% endblock %}
 
 {% block extra_css %}
-<!-- Leaflet CSS (aquí ya no es necesario porque está en base.html) -->
+<!-- Select2 CSS para mejor selección múltiple -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #3498db;
+        border-color: #2980b9;
+        color: white;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -115,7 +131,59 @@
                                 <p class="text-muted mb-3">
                                     Selecciona las categorías y subcategorías que mejor representen tu talento:
                                 </p>
-                                {{ form.subcategorias|as_crispy_field }}
+                                
+                                <!-- Categorías como pestañas -->
+                                <ul class="nav nav-tabs mb-3" id="categoriasTab" role="tablist">
+                                    {% for categoria in categorias %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                                                id="cat-{{ categoria.id }}-tab" 
+                                                data-bs-toggle="tab" 
+                                                data-bs-target="#cat-{{ categoria.id }}" 
+                                                type="button" 
+                                                role="tab">
+                                            <i class="{{ categoria.icono }} me-1"></i>{{ categoria.nombre }}
+                                        </button>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                
+                                <!-- Contenido de las pestañas -->
+                                <div class="tab-content" id="categoriasTabContent">
+                                    {% for categoria in categorias %}
+                                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                                         id="cat-{{ categoria.id }}" 
+                                         role="tabpanel">
+                                        <div class="row">
+                                            {% for subcategoria in categoria.subcategorias.all %}
+                                            <div class="col-md-4 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input subcategoria-checkbox" 
+                                                           type="checkbox" 
+                                                           name="subcategorias" 
+                                                           value="{{ subcategoria.id }}" 
+                                                           id="subcat-{{ subcategoria.id }}"
+                                                           {% if subcategoria.id in subcategorias_seleccionadas %}checked{% endif %}>
+                                                    <label class="form-check-label" for="subcat-{{ subcategoria.id }}">
+                                                        {{ subcategoria.nombre }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            {% empty %}
+                                            <div class="col-12">
+                                                <p class="text-muted">No hay subcategorías disponibles para esta categoría.</p>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Consejo:</strong> Selecciona las especialidades que mejor representen tu trabajo. 
+                                    Puedes seleccionar múltiples subcategorías de diferentes categorías.
+                                </div>
                             </div>
                         </div>
 
@@ -201,11 +269,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // Mapa Leaflet para SELECCIÓN de ubicación
 function initMap() {
-    const defaultLocation = [4.142, -73.6266];
+    const defaultLocation = [4.142, -73.6266]; // Villavicencio por defecto
     const map = L.map('map').setView(defaultLocation, 12);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -247,16 +317,32 @@ function initMap() {
 
 document.addEventListener('DOMContentLoaded', function() {
     initMap();
+    
+    // Inicializar Select2 para subcategorías
+    $('.subcategoria-checkbox').select2({
+        placeholder: "Selecciona tus especialidades",
+        allowClear: true,
+        width: '100%'
+    });
 });
 
 // Validación del formulario
 document.getElementById('perfil-form').addEventListener('submit', function(e) {
     const lat = document.getElementById('id_latitud').value;
     const lng = document.getElementById('id_longitud').value;
+    const subcategorias = document.querySelectorAll('input[name="subcategorias"]:checked');
     
+    // Validar ubicación
     if (!lat || !lng) {
         e.preventDefault();
         alert('Por favor, selecciona tu ubicación en el mapa haciendo clic en él.');
+        return false;
+    }
+    
+    // Validar subcategorías
+    if (subcategorias.length === 0) {
+        e.preventDefault();
+        alert('Por favor, selecciona al menos una especialidad.');
         return false;
     }
 });
@@ -268,10 +354,5 @@ document.getElementById('perfil-form').addEventListener('submit', function(e) {
     border-radius: 8px;
     overflow: hidden;
 }
-
-/* Resto de estilos */
-.form-check { margin-bottom: 0.5rem; padding-left: 2.5em; }
-.form-check-input { margin-left: -2.5em; margin-top: 0.25em; }
-.form-check-label { cursor: pointer; }
 </style>
 {% endblock %}
