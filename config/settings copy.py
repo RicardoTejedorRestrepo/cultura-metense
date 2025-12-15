@@ -149,7 +149,7 @@ LOGIN_URL = 'usuarios:login'
 LOGOUT_REDIRECT_URL = 'artistas:home'
 
 # Project specific settings
-PROJECT_NAME = 'Cultura Metense'
+PROJECT_NAME = 'Portafolio Cultural del Departamento del Meta'
 
 
 
@@ -254,7 +254,7 @@ LOGIN_REDIRECT_URL = 'artistas:home'
 LOGIN_URL = 'usuarios:login'
 LOGOUT_REDIRECT_URL = 'artistas:home'
 
-PROJECT_NAME = 'Cultura Metense'
+PROJECT_NAME = 'Portafolio Cultural del Departamento del Meta'
     
 ROOT_URLCONF = 'config.urls'
 
